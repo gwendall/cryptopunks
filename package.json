@@ -1,8 +1,33 @@
 {
+  "name": "cryptopunks-contract",
+  "version": "2.0.0",
+  "private": true,
+  "description": "CryptoPunks contract repo – modernized for 2025 (Hardhat + TypeScript)",
+  "license": "MIT",
+  "scripts": {
+    "prepare": "husky install || true",
+    "clean": "rm -rf artifacts cache typechain-types dist",
+    "typecheck": "tsc --noEmit",
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:local": "hardhat run scripts/deploy.ts",
+    "deploy:sepolia": "hardhat run scripts/deploy.ts --network sepolia",
+    "deploy:holesky": "hardhat run scripts/deploy.ts --network holesky",
+    "seed:local": "hardhat run scripts/seedAllClaimed.ts",
+    "seed:sepolia": "hardhat run scripts/seedAllClaimed.ts --network sepolia",
+    "seed:holesky": "hardhat run scripts/seedAllClaimed.ts --network holesky"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@typechain/hardhat": "^9.1.0",
+    "dotenv": "^16.4.5",
+    "hardhat": "^2.22.9",
+    "husky": "^9.0.11",
+    "ts-node": "^10.9.2",
+    "typechain": "^8.3.2",
+    "typescript": "^5.6.3"
+  },
   "dependencies": {
-    "babel-preset-es2015": "^6.3.13",
-    "babel-preset-stage-2": "^6.3.13",
-    "babel-preset-stage-3": "^6.3.13",
-    "babel-polyfill": "^6.7.4"
+    "ethers": "^6.13.2"
   }
 }

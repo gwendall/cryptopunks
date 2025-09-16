@@ -1,5 +1,116 @@
 ![CryptoPunks](/punk-variety.png)
 
+## CryptoPunks Contract — 2025 Modernization
+
+This repository has been fully updated for 2025 developer tooling while keeping the original Solidity contract code intact (Solidity 0.4.8, unchanged).
+
+What’s new:
+
+- Hardhat + TypeScript build, test, and deploy pipeline
+- Ethers v6 + TypeChain types
+- Simple deploy + seeding scripts to simulate a “live” contract where all punks are already claimed
+- Testnet ready (Sepolia/Holesky) via `ETH_RPC_URL` and `PRIVATE_KEY`
+
+The original Truffle artifacts and tests remain in the repo for reference, but the recommended workflow is via Hardhat.
+
+### Why This Port (2025)
+
+- Purpose: make it trivial to deploy realistic testnet instances of the original CryptoPunks contract for punk-related development (wrappers, marketplaces, indexers, analytics, etc.).
+- Seeding: includes scripts to pre-assign all 10,000 punks so the contract “looks live”, matching mainnet-like conditions for integration testing.
+- Tooling: Hardhat + TypeScript + Ethers v6 for modern DX, typed ABIs, and straightforward scripted deploys.
+
+### Quick Start (2025 stack)
+
+1) Install dependencies
+
+```
+cp .env.example .env
+pnpm i   # or: npm i / yarn
+```
+
+2) Configure your `.env`
+
+```
+PRIVATE_KEY= # private key (no 0x prefix) for the deployer
+ETH_RPC_URL= # RPC endpoint for Sepolia/Holesky
+# Optional defaults for seeding
+SEED_TO_ADDRESS=0xYourAddress
+BATCH_SIZE=40
+FINALIZE=true
+```
+
+3) Compile
+
+```
+npx hardhat compile
+```
+
+4) Deploy to testnet
+
+```
+# Sepolia (requires ETH_RPC_URL + PRIVATE_KEY)
+npx hardhat run scripts/deploy.ts --network sepolia
+
+# Output: contract address (save it for seeding)
+```
+
+5) Seed all 10,000 punks as already claimed by a chosen address
+
+```
+npx hardhat run scripts/seedAllClaimed.ts --network sepolia \
+  --contract 0xDeployedContractAddress \
+  --to 0xRecipientAddress \
+  --batch 40 \
+  --start 0 \
+  --count 10000
+
+# Notes:
+# - The script calls owner-only methods `setInitialOwners(addresses[], indices[])` in batches
+# - Then (by default) calls `allInitialOwnersAssigned()` to lock the initial assignment phase
+# - Adjust --batch if you hit gas limits; 30–50 is a safe starting range
+```
+
+After seeding, `punksRemainingToAssign` should be 0 and the contract will “look live” with all 10,000 punks already owned by the target address.
+
+6) Interact
+
+Use the ABI and address with any tool (Hardhat console, a dapp, etc.). Example Hardhat console commands:
+
+```
+npx hardhat console --network sepolia
+> const c = await ethers.getContractAt("CryptoPunksMarket", "0xDeployedContractAddress")
+> await c.punkIndexToAddress(0)
+> await c.balanceOf("0xRecipientAddress")
+```
+
+### Notes on Gas and Batching
+
+- `setInitialOwners` assigns many indices in one transaction; large batches can exceed block gas limits. Start with `--batch 40` and adjust if needed.
+- Seeding all 10,000 punks costs testnet gas. Ensure your deployer has sufficient test ETH.
+
+### Testnet Deployment (Step-by-step)
+
+- Fund the deployer address (from `PRIVATE_KEY`) with enough test ETH on your target network (Sepolia/Holesky).
+- Deploy using scripts (or `npm run` shortcuts):
+  - `npm run deploy:sepolia` or `npm run deploy:holesky`
+  - Copy the printed address.
+- Seed an address as the initial owner of all punks (simulating “all claimed”):
+  - `npm run seed:sepolia -- --contract 0xDeployedAddress --to 0xRecipientAddress --batch 40 --start 0 --count 10000`
+  - The script batches `setInitialOwners` and then calls `allInitialOwnersAssigned` (owner-only) to lock initial assignment.
+- Verify in Hardhat console:
+  - `npx hardhat console --network sepolia`
+  - `const c = await ethers.getContractAt("CryptoPunksMarket", "0xDeployedAddress")`
+  - `await c.punksRemainingToAssign()` -> `0`
+  - `await c.punkIndexToAddress(0)` -> `0xRecipientAddress`
+
+Advanced seeding:
+- Split ownership across multiple addresses by calling the seed script multiple times with different `--start/--count` ranges and `--to` addresses, and pass `--finalize false` until the last run, then call once with default `--finalize`.
+- Adjust `--batch` to stay under gas limits. 30–50 is a safe starting point.
+
+---
+
+## Original README (2017 context)
+
 ## CryptoPunks: Collectible Characters on the Ethereum Blockchain
 
 CryptoPunks are 10,000 unique collectible characters with proof of ownership stored on the Ethereum blockchain. No two are exactly alike, and each one of them can be officially owned by a single person as managed and verified by a contract running on the Ethereum blockchain. You can see which punks are still available along with some more general information over at https://www.larvalabs.com/cryptopunks
@@ -14,7 +125,7 @@ This repo contains the Ethereum contract used to manage the Punks, a verifiable 
 
 ### How to Use the CryptoPunks Contract
 
-The easiest way is to use [MyEtherWallet](https://www.myetherwallet.com/#contracts) which has added CryptoPunks to their contract dropdown. If you prefer to use an Ethereum wallet on your computer, the main CryptoPunks contract can be found at address **0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB**. Watch this contract in your Ethereum wallet using that address and [this ABI file](/compiled/CryptoPunksMarket.abi).
+The easiest way is to use [MyEtherWallet](https://www.myetherwallet.com/#contracts) which has added CryptoPunks to their contract dropdown. If you prefer to use an Ethereum wallet on your computer, the main CryptoPunks contract can be found at address **0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB**. For ABI in this repo’s modern setup, use the Hardhat artifact at `artifacts/contracts/CryptoPunksMarket.sol/CryptoPunksMarket.json` after running `npx hardhat compile`.
 
 Once you are watching the contract you can execute the following functions to transact punks:
 
