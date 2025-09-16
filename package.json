@@ -14,6 +14,8 @@
     "deploy:sepolia": "hardhat run scripts/deploy.ts --network sepolia",
     "deploy:holesky": "hardhat run scripts/deploy.ts --network holesky",
     "seed:local": "hardhat run scripts/seedAllClaimed.ts",
+    "seed:localhost": "hardhat seed-all --network localhost",
+    "seed:sepolia:task": "hardhat seed-all --network sepolia",
     "seed:sepolia": "hardhat run scripts/seedAllClaimed.ts --network sepolia",
     "seed:holesky": "hardhat run scripts/seedAllClaimed.ts --network holesky"
   },

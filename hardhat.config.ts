@@ -2,6 +2,7 @@ import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "@typechain/hardhat";
 import * as dotenv from "dotenv";
+import "./tasks/seed";
 
 dotenv.config();
 

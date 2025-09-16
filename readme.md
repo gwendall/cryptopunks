@@ -56,19 +56,36 @@ npx hardhat run scripts/deploy.ts --network sepolia
 
 5) Seed all 10,000 punks as already claimed by a chosen address
 
+Recommended (Hardhat task; no special CLI separators):
+
 ```
-npx hardhat run scripts/seedAllClaimed.ts --network sepolia \
+npx hardhat seed-all --network sepolia \
+  --contract 0xDeployedContractAddress \
+  --to 0xRecipientAddress \
+  --batch 40 \
+  --start 0 \
+  --count 10000 \
+  --finalize true
+
+# Or use npm scripts:
+npm run seed:sepolia:task -- --contract 0xDeployedContractAddress --to 0xRecipientAddress --batch 40 --start 0 --count 10000
+```
+
+Alternative (script runner; requires `--` separator after the script path):
+
+```
+npx hardhat run --network sepolia scripts/seedAllClaimed.ts -- \
   --contract 0xDeployedContractAddress \
   --to 0xRecipientAddress \
   --batch 40 \
   --start 0 \
   --count 10000
+```
 
 # Notes:
-# - The script calls owner-only methods `setInitialOwners(addresses[], indices[])` in batches
+# - Seeding uses owner-only methods `setInitialOwners(addresses[], indices[])` in batches
 # - Then (by default) calls `allInitialOwnersAssigned()` to lock the initial assignment phase
-# - Adjust --batch if you hit gas limits; 30–50 is a safe starting range
-```
+# - Adjust `--batch` if you hit gas limits; 30–50 is a safe starting range
 
 After seeding, `punksRemainingToAssign` should be 0 and the contract will “look live” with all 10,000 punks already owned by the target address.
 
@@ -95,8 +112,9 @@ npx hardhat console --network sepolia
   - `npm run deploy:sepolia` or `npm run deploy:holesky`
   - Copy the printed address.
 - Seed an address as the initial owner of all punks (simulating “all claimed”):
-  - `npm run seed:sepolia -- --contract 0xDeployedAddress --to 0xRecipientAddress --batch 40 --start 0 --count 10000`
-  - The script batches `setInitialOwners` and then calls `allInitialOwnersAssigned` (owner-only) to lock initial assignment.
+  - Recommended task: `npm run seed:sepolia:task -- --contract 0xDeployedAddress --to 0xRecipientAddress --batch 40 --start 0 --count 10000`
+  - Alternative script: `npx hardhat run --network sepolia scripts/seedAllClaimed.ts -- --contract 0xDeployedAddress --to 0xRecipientAddress --batch 40 --start 0 --count 10000`
+  - Batches `setInitialOwners` then calls `allInitialOwnersAssigned` (owner-only) to lock initial assignment.
 - Verify in Hardhat console:
   - `npx hardhat console --network sepolia`
   - `const c = await ethers.getContractAt("CryptoPunksMarket", "0xDeployedAddress")`
@@ -144,3 +162,19 @@ Once you are watching the contract you can execute the following functions to tr
 ![All the CryptoPunks](/punks.png)
 
 This is the official and genuine image of all of the CryptoPunks that have been created. To allow verification that the punks being managed by the CryptoPunks Ethereum contract are the same as what you see in the image, we have embedded a SHA256 hash of the image file into the contract. You can generate this hash for the punks image file via a command line similar to ```openssl sha -sha256 punks.png``` and compare that to the embedded hash in the contract ```ac39af4793119ee46bbff351d8cb6b5f23da60222126add4268e261199a2921b```.
+Tip: Put Hardhat flags before the script path, then use `--` to pass script flags. Example for localhost:
+
+```
+npx hardhat run --network localhost scripts/seedAllClaimed.ts -- \
+  --contract 0x5FbDB2315678afecb367f032d93F642f64180aa3 \
+  --to 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 \
+  --batch 40
+```
+
+### Local Dev (localhost)
+
+- Start node: `npx hardhat node`
+- Deploy: `npx hardhat run scripts/deploy.ts --network localhost`
+- Seed (recommended task): `npm run seed:localhost -- --contract 0xDeployedAddress --to 0xYourAddress --batch 40`
+  - Or directly: `npx hardhat seed-all --network localhost --contract 0xDeployedAddress --to 0xYourAddress --batch 40`
+  - This avoids the `--` separator issues entirely.

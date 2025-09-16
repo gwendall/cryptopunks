@@ -9,7 +9,6 @@
     "types": ["node", "hardhat"],
     "skipLibCheck": true
   },
-  "include": ["./scripts", "./test", "./hardhat.config.ts", "./typechain-types"],
+  "include": ["./scripts", "./test", "./tasks", "./hardhat.config.ts", "./typechain-types"],
   "exclude": ["node_modules", "dist"]
 }
-
